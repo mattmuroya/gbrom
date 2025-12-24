@@ -1,5 +1,9 @@
+# Reference: https://gbdev.io/pandocs/The_Cartridge_Header.html
+# Accessed: 2025-12-24
+
 import sys
-from constants import BOOTROM_LOGO
+from constants import *
+from utils import *
 
 
 def main():
@@ -14,6 +18,17 @@ def main():
 
         print("Logo:", "PASS" if verify_logo(rom) else "FAIL")
         print("Title:", parse_title(rom))
+        print("Manufacturer code:", parse_manufacturer_code(rom))
+        print("CBG flag:", hexpad(parse_cgb_flag(rom)))
+        print("Publisher:", parse_publisher(rom))
+        print("SGB flag:", hexpad(parse_cgb_flag(rom)))
+        print("Cartridge type:", parse_cartridge_type(rom))
+        print("ROM size:", parse_rom_size_details(rom))
+        print("RAM size:", parse_rom_size_details(rom))
+        print("Destination code:", parse_destination_code(rom))
+        print("Mask ROM version number:", hexpad(parse_mask_rom_version_number(rom)))
+        # print("Header checksum:", "PASS" if verify_header_checksum(rom) else "FAIL")
+        # print("Global checksum:", "PASS" if verify_global_checksum(rom) else "FAIL")
 
 
 def verify_logo(rom: bytes) -> bool:
@@ -21,7 +36,63 @@ def verify_logo(rom: bytes) -> bool:
 
 
 def parse_title(rom: bytes) -> str:
-    return rom[0x134 : 0x143 + 1].decode("utf-8")
+    return rom[0x0134 : 0x0143 + 1].decode("utf-8", errors="replace")
+
+
+def parse_manufacturer_code(rom: bytes) -> str:
+    code = rom[0x013F : 0x0142 + 1].decode("utf-8")
+    return "N/A" if code == "\0\0\0\0" else code
+
+
+def parse_cgb_flag(rom: bytes) -> int:
+    return rom[0x0143]
+
+
+def parse_publisher(rom: bytes) -> str:
+    old_licensee_code = rom[0x014B]
+
+    if old_licensee_code == 0x33:
+        new_licensee_code = rom[0x0144 : 0x0145 + 1].decode("utf-8")
+        publisher = NEW_LICENSEE_CODES.get(new_licensee_code)
+
+        return f"'{new_licensee_code}' - {publisher}"
+
+    publisher = OLD_LICENSEE_CODES.get(old_licensee_code)
+    return f"{hexpad(old_licensee_code)} - {publisher}"
+
+
+def parse_sgb_flag(rom: bytes) -> int:
+    return rom[0x0146]
+
+
+def parse_cartridge_type(rom: bytes) -> str:
+    return CARTRIDGE_TYPES.get(rom[0x0147])
+
+
+def parse_rom_size_details(rom: bytes) -> str:
+    return ROM_SIZES.get(rom[0x0148])
+
+
+def parse_ram_size_details(rom: bytes) -> str:
+    return RAM_SIZES.get(rom[0x0149])
+
+
+def parse_destination_code(rom: bytes) -> str:
+    code = rom[0x014A]
+    destination = DESTINATION_CODES.get(code)
+    return f"{hex(code)} - {destination}"
+
+
+def parse_mask_rom_version_number(rom: bytes) -> int:
+    return rom[0x014C]
+
+
+# def verify_header_checksum(rom: bytes) -> bool:
+#     return False
+
+
+# def verify_global_checksum(rom: bytes) -> bool:
+#     return False
 
 
 if __name__ == "__main__":
