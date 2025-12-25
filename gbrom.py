@@ -3,7 +3,6 @@
 
 import sys
 from constants import *
-from utils import *
 
 
 def main():
@@ -27,8 +26,13 @@ def main():
         print("RAM size:", parse_rom_size_details(rom))
         print("Destination code:", parse_destination_code(rom))
         print("Mask ROM version number:", hexpad(parse_mask_rom_version_number(rom)))
-        # print("Header checksum:", "PASS" if verify_header_checksum(rom) else "FAIL")
-        # print("Global checksum:", "PASS" if verify_global_checksum(rom) else "FAIL")
+        print("Header checksum:", "PASS" if verify_header_checksum(rom) else "FAIL")
+        print("Global checksum:", "PASS" if verify_global_checksum(rom) else "FAIL")
+
+
+def hexpad(value: int, pad: str = "0", width: int = 2) -> str:
+    template = "0x{:" + pad + str(width) + "x}"
+    return template.format(value)
 
 
 def verify_logo(rom: bytes) -> bool:
@@ -50,13 +54,10 @@ def parse_cgb_flag(rom: bytes) -> int:
 
 def parse_publisher(rom: bytes) -> str:
     old_licensee_code = rom[0x014B]
-
     if old_licensee_code == 0x33:
         new_licensee_code = rom[0x0144 : 0x0145 + 1].decode("utf-8")
         publisher = NEW_LICENSEE_CODES.get(new_licensee_code)
-
         return f"'{new_licensee_code}' - {publisher}"
-
     publisher = OLD_LICENSEE_CODES.get(old_licensee_code)
     return f"{hexpad(old_licensee_code)} - {publisher}"
 
@@ -80,19 +81,25 @@ def parse_ram_size_details(rom: bytes) -> str:
 def parse_destination_code(rom: bytes) -> str:
     code = rom[0x014A]
     destination = DESTINATION_CODES.get(code)
-    return f"{hex(code)} - {destination}"
+    return f"{hexpad(code)} - {destination}"
 
 
 def parse_mask_rom_version_number(rom: bytes) -> int:
     return rom[0x014C]
 
 
-# def verify_header_checksum(rom: bytes) -> bool:
-#     return False
+def verify_header_checksum(rom: bytes) -> bool:
+    target = rom[0x014D]
+    checksum = 0
+    for byte in rom[0x0134 : 0x014C + 1]:
+        checksum = (checksum - byte - 0x01) & 0xFF
+    return checksum == target
 
 
-# def verify_global_checksum(rom: bytes) -> bool:
-#     return False
+def verify_global_checksum(rom: bytes) -> bool:
+    target = rom[0x014E] << 8 | rom[0x014F]
+    checksum = (sum(rom) - rom[0x014E] - rom[0x014F]) & 0xFFFF
+    return checksum == target
 
 
 if __name__ == "__main__":
