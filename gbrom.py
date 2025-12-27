@@ -15,6 +15,10 @@ def main():
     with open(path, "rb") as file:
         rom = file.read()
 
+        print()
+        print_logo(rom)
+        print()
+
         print("Logo:", "PASS" if verify_logo(rom) else "FAIL")
         print("Title:", parse_title(rom))
         print("Manufacturer code:", parse_manufacturer_code(rom))
@@ -23,7 +27,7 @@ def main():
         print("SGB flag:", hexpad(parse_cgb_flag(rom)))
         print("Cartridge type:", parse_cartridge_type(rom))
         print("ROM size:", parse_rom_size_details(rom))
-        print("RAM size:", parse_rom_size_details(rom))
+        print("RAM size:", parse_ram_size_details(rom))
         print("Destination code:", parse_destination_code(rom))
         print("Mask ROM version number:", hexpad(parse_mask_rom_version_number(rom)))
         print("Header checksum:", "PASS" if verify_header_checksum(rom) else "FAIL")
@@ -33,6 +37,38 @@ def main():
 def hexpad(value: int, pad: str = "0", width: int = 2) -> str:
     template = "0x{:" + pad + str(width) + "x}"
     return template.format(value)
+
+
+def high_nibble(byte: int) -> int:
+    return byte >> 4
+
+
+def low_nibble(byte: int) -> int:
+    return byte & 0x0F
+
+
+def print_nibble(nibble: int) -> str:
+    for bit_pos in range(3, -1, -1):
+        print("#" if (nibble >> bit_pos) & 0x01 else " ", end="")
+
+
+def print_logo(rom: bytes) -> None:
+    top_half = rom[0x0104 : 0x011B + 1]
+    bottom_half = rom[0x011C : 0x0133 + 1]
+    for tile_row in (top_half, bottom_half):
+        for row in range(4):
+            for tile in range(12):
+                byte_0 = tile_row[tile * 2]
+                byte_1 = tile_row[tile * 2 + 1]
+                if row == 0:
+                    print_nibble(high_nibble(byte_0))
+                if row == 1:
+                    print_nibble(low_nibble(byte_0))
+                if row == 2:
+                    print_nibble(high_nibble(byte_1))
+                if row == 3:
+                    print_nibble(low_nibble(byte_1))
+            print()
 
 
 def verify_logo(rom: bytes) -> bool:
