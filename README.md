@@ -35,7 +35,7 @@ Global checksum:          PASS
 ## Notes on boot logo
 
 The Nintendo logo that displays when you turn on the Game Boy is hard-encoded
-into internal system
+into the internal system
 [boot ROM](https://codeberg.org/ISSOtm/gb-bootroms/src/commit/2dce25910043ce2ad1d1d3691436f2c7aabbda00/src/dmg.asm#L256-L269).
 Game cartridges include a copy of this logo inside the header at memory at
 address `0x0104` - `0x0133`. The boot ROM instructs the system to verify that
@@ -53,31 +53,30 @@ using two bytes.
 +---+---+---+---+---+---+---+---+---+---+---+---+
 ```
 
-The first byte for each tile represents the top two pixel rows, each four bits
-across from MSB to LSB; and the second byte represents the bottom two pixel
+The first byte for each tile represents the top two pixel rows; each row four
+bits across from MSB to LSB. The second byte represents the bottom two pixel
 rows.
 
 For example, the first two bytes of the sequence starting at memory address
-`0x0104` are `0xCE` and `0xED`. Together, they encode the first 4x4-pixel tile
-like so:
+`0x0104` are `0xCE` and `0xED`. Together, they encode the first 4x4-pixel tile:
 
 ```
 0x0104: 0xCE = 0b11001110
 0x0105: 0xED = 0b11101101
 
 +---+---+---+---+
-| 1 | 1 | 0 | 0 |  <-- High nibble (first four bits) of first byte (0xCE)
+| 1 | 1 | 0 | 0 |  <-- High nibble (first four bits) of first byte (0xC)
 +---+---+---+---+
-| 1 | 1 | 1 | 0 |  <-- Low nibble (last four bits) of first byte (0xCE)
+| 1 | 1 | 1 | 0 |  <-- Low nibble (last four bits) of first byte (0xE)
 +---+---+---+---+
-| 1 | 1 | 1 | 0 |  <-- High nibble of second byte (0xED)
+| 1 | 1 | 1 | 0 |  <-- High nibble of second byte (0xE)
 +---+---+---+---+
-| 1 | 1 | 0 | 1 |  <-- Low nibble of second byte (0xED)
+| 1 | 1 | 0 | 1 |  <-- Low nibble of second byte (0xD)
 +---+---+---+---+
 ```
 
-The resulting image of all 24 tiles (two rows of 12) should look like this
-(where 1='#' and 0=' '):
+The resulting image of all 24 tiles (two rows of 12) looks like this (where and
+0=' '):
 
 ```
 ##   ## ##                             ##         <--+
