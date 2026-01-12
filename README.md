@@ -75,8 +75,8 @@ For example, the first two bytes of the sequence starting at memory address
 +---+---+---+---+
 ```
 
-The resulting image of all 24 tiles (two rows of 12) looks like this (where and
-0=' '):
+The resulting image of all 24 tiles (two rows of 12) looks like this (where 1 =
+'#' and 0 = ' '):
 
 ```
 ##   ## ##                             ##         <--+
